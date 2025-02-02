@@ -158,7 +158,7 @@ def main():
     # Parse command-line arguments manually
     for i in range(1, len(sys.argv) - 1, 2):
         flag = sys.argv[i]
-        if flag in flags_to_paths:
+        if flag in flags_to_paths: # is flag known?
             flags_to_paths[flag] = sys.argv[i + 1]
         else:
             print("Usage: python3 enigma.py -c <config_file> -i <input_file> -o <output_file>")
@@ -175,32 +175,24 @@ def main():
 
     try:
         enigma = load_enigma_from_path(config_path)
-    except JSONFileException as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-    try:
         with open(input_path, 'r') as f:
             input_lines = f.readlines() ## need to read line by line
-    except IOError as e:
+
+        encrypted_lines = [enigma.encrypt(line) for line in input_lines]
+
+        # Print or write to file based on the -o flag
+        if output_path: # if not none
+                with open(output_path, 'w') as f:
+                    for line in encrypted_lines:
+                        f.writelines(line)
+        else:
+            # If no output file, print to standard output
+            for line in encrypted_lines:
+                print(line)
+    except Exception:
         print("The enigma script has encountered an error")
         sys.exit(1)
 
-    encrypted_lines = [enigma.encrypt(line) for line in input_lines]
-
-    # Print or write to file based on the -o flag
-    if output_path: # if not none
-        try:
-            with open(output_path, 'w') as f:
-                for line in encrypted_lines:
-                    f.writelines(line)
-        except IOError:
-            print("The enigma script has encountered an error")
-            sys.exit(1)
-    else:
-        # If no output file, print to standard output
-        for line in encrypted_lines:
-            print(line)
 
 
 
