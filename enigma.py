@@ -147,6 +147,7 @@ def main():
     # For testing
     # test_index = 4
     # sys.argv = ["enigma.py", "-c", "config_file.json", "-i", f"tests/test{test_index}.in", "-o", f"output{test_index}.out"]
+    # Passes tests comment 
     # Ensure we have at least the required flags
     if len(sys.argv) < 5: # at least script name, the first two flags -c and -i and their files
         print("Usage: python3 enigma.py -c <config_file> -i <input_file> -o <output_file>")
