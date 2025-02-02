@@ -30,13 +30,13 @@ def find_key(my_dict, value):
 
 
 # ----------------------change wheels helper functions------------------------ #
-def calculate_wheel_value(wheel_list, number):
+def calculate_wheel_value(wheel_list):
     w1, w2, w3 = wheel_list[0], wheel_list[1], wheel_list[2]
     return ((W1_COEFFICIENT * w1) - w2 + w3) % MOD_VALUE
 
 
 def change_based_on_wheel_value(wheel_list, number, coefficient):
-    number_to_add = calculate_wheel_value(wheel_list, number)
+    number_to_add = calculate_wheel_value(wheel_list)
     if number_to_add != 0:
         return (number + coefficient * number_to_add) % MOD_VALUE
     else:
@@ -59,7 +59,7 @@ def divisible_by_three(number):
 # ----------------------wheel helper functions------------------------- #
 def change_w1(wheel_list):
     w1 = wheel_list[0]
-    if w1 <= W1_UPPER_LIMIT:
+    if w1 < W1_UPPER_LIMIT:
         wheel_list[0] += 1
     else:
         wheel_list[0] = 1
@@ -82,24 +82,23 @@ def change_w3(wheel_list, counter):
 
 
 def change_wheels(wheel_list, idx, counter):
-    match idx:
-        case 0:
-            change_w1(wheel_list)
-        case 1:
-            change_w2(wheel_list, counter)
-        case 2:
-            change_w3(wheel_list, counter)
+    if idx == 0:
+        change_w1(wheel_list)
+    elif idx == 1:
+        change_w2(wheel_list, counter)
+    elif idx == 2:
+        change_w3(wheel_list, counter)
 
 
 # ----------------------encryption helper function------------------------- #
-def encryption_algorithm(self, wheels_list, str_list, c, c_idx):
-    i = self.hash_map[c]
+def encryption_algorithm(enigma, wheels_list, str_list, c, c_idx):
+    i = enigma.hash_map[c]
     i = change_based_on_wheel_value(wheels_list, i, ADD)
-    c1 = find_key(self.hash_map, i)
-    c2 = self.reflector_map[c1]
-    i = self.hash_map[c2]
+    c1 = find_key(enigma.hash_map, i)
+    c2 = enigma.reflector_map[c1]
+    i = enigma.hash_map[c2]
     i = change_based_on_wheel_value(wheels_list, i, SUBTRACT)
-    c3 = find_key(self.hash_map, i)
+    c3 = find_key(enigma.hash_map, i)
     str_list[c_idx] = c3
     return
 
@@ -119,7 +118,7 @@ class Enigma:
             # encrypt
             if c.isalpha() and c.islower():
                 encryption_algorithm(self, wheels_list, str_list, c, c_idx)
-                encrypted_counter += 1
+                encrypted_counter += 1 #non empty cases
             # change wheel values
             for w_idx, _ in enumerate(wheels_list):
                 change_wheels(wheels_list, w_idx, encrypted_counter)
@@ -146,8 +145,8 @@ def load_enigma_from_path(path):
 # ---------------------------------------------------- #
 def main():
     # For testing
-    test_index = 2
-    sys.argv = ["enigma.py", "-c", "config_file.json", "-i", f"tests/test{test_index}.in", "-o", f"output{test_index}.out"]
+    # test_index = 4
+    # sys.argv = ["enigma.py", "-c", "config_file.json", "-i", f"tests/test{test_index}.in", "-o", f"output{test_index}.out"]
     # Ensure we have at least the required flags
     if len(sys.argv) < 5: # at least script name, the first two flags -c and -i and their files
         print("Usage: python3 enigma.py -c <config_file> -i <input_file> -o <output_file>")
@@ -182,24 +181,26 @@ def main():
 
     try:
         with open(input_path, 'r') as f:
-            input_text = f.read()
+            input_lines = f.readlines() ## need to read line by line
     except IOError as e:
         print("The enigma script has encountered an error")
         sys.exit(1)
 
-    encrypted_text = enigma.encrypt(input_text)
+    encrypted_lines = [enigma.encrypt(line) for line in input_lines]
 
     # Print or write to file based on the -o flag
     if output_path: # if not none
         try:
             with open(output_path, 'w') as f:
-                f.write(encrypted_text)
+                for line in encrypted_lines:
+                    f.writelines(line)
         except IOError:
             print("The enigma script has encountered an error")
             sys.exit(1)
     else:
         # If no output file, print to standard output
-        print(encrypted_text)
+        for line in encrypted_lines:
+            print(line)
 
 
 
